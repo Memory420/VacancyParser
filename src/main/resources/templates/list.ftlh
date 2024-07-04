@@ -1,37 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Вакансии</title>
+    <meta charset="UTF-8">
+    <title>Vacancies List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .vacancy {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .vacancy-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .vacancy-title:hover {
+            text-decoration: underline;
+        }
+        .vacancy-detail {
+            margin-top: 5px;
+        }
+        .vacancy-label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<h1>Результаты поиска вакансий</h1>
+<h1>Vacancies List</h1>
 <hr>
-<#if error??>
-<div>
-    <p>${error}</p>
-</div>
-</#if>
-<#if vacancies??>
+<#if vacancies?? && (vacancies?size > 0)>
 <#list vacancies as vacancy>
-<div>
-    <p><b>${vacancy.name}</b></p>
-    <p>Город: ${vacancy.area.name}</p>
-    <p>Работодатель: ${vacancy.employer.name}</p>
-    <p>Требования: ${vacancy.snippet.requirement?replace("<highlighttext>", "")?replace("</highlighttext>", "")}</p>
-    <p>Обязанности: ${vacancy.snippet.responsibility?replace("<highlighttext>", "")?replace("</highlighttext>", "")}</p>
-    <p>Ссылка: <a href="${vacancy.url}">${vacancy.url}</a></p>
-    <p>Альтернативная ссылка: <a href="${vacancy.alternate_url}">${vacancy.alternate_url}</a></p>
-    <p>Дата создания: ${vacancy.created_at}</p>
-    <p>Дата публикации: ${vacancy.published_at}</p>
-    <p>Зарплата: <#if vacancy.salary?? && vacancy.salary?has_content>${vacancy.salary}<#else>не указана</#if></p>
-    <p>График: <#if vacancy.schedule?? && vacancy.schedule.name?has_content>${vacancy.schedule.name}<#else>не указан</#if></p>
-    <p>Архивирована: ${vacancy.archived?string('Да', 'Нет')}</p>
-    <p>Премиальная: ${vacancy.premium?string('Да', 'Нет')}</p>
-    <hr>
+<div class="vacancy">
+    <a href="${vacancy.alternate_url}" class="vacancy-title">${vacancy.name?replace("<highlighttext>", "")?replace("</highlighttext>", "")}</a><br>
+    <div class="vacancy-detail">
+        <span class="vacancy-label">Зарплата:</span> <#if vacancy.salary??>${vacancy.salary.from?c} - ${vacancy.salary.to?c} ${vacancy.salary.currency}</#if><#if !vacancy.salary??>Не указана</#if>
+</div>
+<div class="vacancy-detail">
+    <span class="vacancy-label">Опыт работы:</span> <#if vacancy.experience??>${vacancy.experience.name!"Не указан"}</#if><#if !vacancy.experience??>Не указан</#if>
+</div>
+<div class="vacancy-detail">
+    <span class="vacancy-label">Обязанности:</span> <#if vacancy.snippet.responsibility??>${vacancy.snippet.responsibility?replace("<highlighttext>", "")?replace("</highlighttext>", "")!"Не указаны"}</#if><#if !vacancy.snippet.responsibility??>Не указаны</#if>
+</div>
 </div>
 </#list>
 <#else>
-<p>Вакансии не найдены.</p>
+<p>No vacancies found.</p>
 </#if>
+<a href="/">Back to Search</a>
 </body>
 </html>
