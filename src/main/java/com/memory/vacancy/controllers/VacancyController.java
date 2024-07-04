@@ -1,77 +1,101 @@
 package com.memory.vacancy.controllers;
 
-import com.memory.models.Vacancy;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.memory.models.VacanciesResponse;
-import com.memory.services.VacancyService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.memory.models.Vacancy;
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import kong.unirest.HttpResponse;
-import kong.unirest.JsonNode;
-import kong.unirest.Unirest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Controller
 public class VacancyController {
 
-    private static final Logger logger = Logger.getLogger(VacancyController.class.getName());
-
-    @Autowired
-    private VacancyService vacancyService;
-
     @GetMapping("/")
-    public String showSearchForm() {
-        return "search"; // Шаблон с формой поиска
+    public String searchForm(Model model) {
+        model.addAttribute("vacancies", null);
+        return "search";
     }
 
-    @GetMapping("/search")
-    public String searchVacancies(
-            @RequestParam("jobTitle") String jobTitle,
-            @RequestParam("city") String city,
-            @RequestParam("perPage") String perPage,
-            Model model) {
+    @GetMapping("/vacancies")
+    public String getVacancies(@RequestParam(name = "jobTitle", required = false) String jobTitle,
+                               @RequestParam(name = "city", required = false) String city,
+                               @RequestParam(name = "perPage", required = false) String perPage,
+                               @RequestParam(name = "salary", required = false) String salary,
+                               @RequestParam(name = "experience", required = false) String experience,
+                               Model model) throws Exception {
 
-        logger.log(Level.INFO, "Параметры поиска: jobTitle={0}, city={1}, perPage={2}", new Object[]{jobTitle, city, perPage});
+        // Логи
+        System.out.println("Received request for vacancies with params:");
+        System.out.println("Job Title: " + jobTitle);
+        System.out.println("City: " + city);
+        System.out.println("Per Page: " + perPage);
+        System.out.println("Salary: " + salary);
+        System.out.println("Experience: " + experience);
 
-        try {
-            String apiUrl = "https://api.hh.ru/vacancies";
-            Map<String, String> searchParams = new HashMap<>();
-            searchParams.put("text", jobTitle);
-            searchParams.put("area", city);
-            searchParams.put("per_page", perPage);
-            searchParams.put("page", "0");
-
-            String searchUrl = buildSearchUrl(apiUrl, searchParams);
-            logger.log(Level.INFO, "URL для запроса: {0}", searchUrl);
-
-            HttpResponse<JsonNode> response = Unirest.get(searchUrl).asJson();
-            logger.log(Level.INFO, "Статус ответа: {0}", response.getStatus());
-
-            if (response.getStatus() == 200) {
-                ObjectMapper mapper = new ObjectMapper();
-                String jsonResponse = response.getBody().toString();
-                VacanciesResponse vacanciesResponse = mapper.readValue(jsonResponse, VacanciesResponse.class);
-                List<Vacancy> vacancies = vacanciesResponse.getItems();
-
-                model.addAttribute("vacancies", vacancies);
-            } else {
-                model.addAttribute("error", "Failed to fetch data: " + response.getStatusText());
-            }
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Exception occurred during searchVacancies", e);
-            model.addAttribute("error", "An error occurred while processing your request.");
+        // Проверка на наличие обязательных параметров
+        if ((jobTitle == null || jobTitle.isEmpty()) && (city == null || city.isEmpty())) {
+            model.addAttribute("error", "Please provide at least Job Title or City.");
+            return "search";
         }
 
-        logger.log(Level.INFO, "Returning vacancy-list template");
-        return "list"; // Убедись, что этот шаблон существует
+        String apiUrl = "https://api.hh.ru/vacancies";
+        Map<String, String> searchParams = new HashMap<>();
+        if (jobTitle != null && !jobTitle.isEmpty()) {
+            searchParams.put("text", jobTitle);
+        }
+        if (city != null && !city.isEmpty()) {
+            searchParams.put("area", city);
+        }
+        if (perPage != null && !perPage.isEmpty()) {
+            searchParams.put("per_page", perPage);
+        }
+        searchParams.put("page", "0");
+
+        if (salary != null && !salary.isEmpty()) {
+            searchParams.put("salary", salary);
+        }
+
+        if (experience != null && !experience.isEmpty()) {
+            searchParams.put("experience", experience);
+        }
+
+        String searchUrl = buildSearchUrl(apiUrl, searchParams);
+
+        HttpResponse<JsonNode> response = Unirest.get(searchUrl).asJson();
+
+        // Логи
+        System.out.println("Request URL: " + searchUrl);
+        System.out.println("Response Status: " + response.getStatus());
+
+        if (response.getStatus() == 200) {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonResponse = response.getBody().toString();
+
+            // Логи
+            System.out.println("Response JSON: " + jsonResponse);
+
+            // Преобразование JSON-ответа в список объектов Vacancy
+            VacanciesResponse vacanciesResponse = mapper.readValue(jsonResponse, VacanciesResponse.class);
+            List<Vacancy> vacancies = vacanciesResponse.getItems();
+
+            // Логи
+            System.out.println("Vacancies found: " + vacancies.size());
+
+            model.addAttribute("vacancies", vacancies);
+        } else {
+            model.addAttribute("error", "Failed to fetch data: " + response.getStatusText());
+            model.addAttribute("vacancies", null);
+        }
+
+        return "list";
     }
 
     private String buildSearchUrl(String apiUrl, Map<String, String> params) {
