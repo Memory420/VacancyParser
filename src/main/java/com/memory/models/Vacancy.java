@@ -19,7 +19,6 @@ public class Vacancy {
     private boolean premium;
     private String department;
 
-    // Геттеры и сеттеры
     public String getId() {
         return id;
     }
@@ -132,13 +131,13 @@ public class Vacancy {
         this.department = department;
     }
 
-    // Вложенные классы без static
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public class Snippet {
         private String requirement;
         private String responsibility;
 
-        // Геттеры и сеттеры
+
         public String getRequirement() {
             return requirement;
         }
@@ -184,7 +183,7 @@ public class Vacancy {
         private String id;
         private String name;
 
-        // Геттеры и сеттеры
+
         public String getId() {
             return id;
         }
@@ -208,7 +207,7 @@ public class Vacancy {
         private Integer to;
         private String currency;
 
-        // Геттеры и сеттеры
+
         @Override
         public String toString() {
             return (from != null ? "от " + from + " " : "") +
@@ -246,7 +245,7 @@ public class Vacancy {
         private String id;
         private String name;
 
-        // Геттеры и сеттеры
+
         public String getId() {
             return id;
         }
