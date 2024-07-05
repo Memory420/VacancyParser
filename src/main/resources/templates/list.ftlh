@@ -39,13 +39,30 @@
 <div class="vacancy">
     <a href="${vacancy.alternate_url}" class="vacancy-title">${vacancy.name?replace("<highlighttext>", "")?replace("</highlighttext>", "")}</a><br>
     <div class="vacancy-detail">
-        <span class="vacancy-label">Зарплата:</span> <#if vacancy.salary??>${vacancy.salary.from?c} - ${vacancy.salary.to?c} ${vacancy.salary.currency}</#if><#if !vacancy.salary??>Не указана</#if>
+        <span class="vacancy-label">Зарплата:</span>
+        <#if vacancy.salary??>
+        <#if vacancy.salary.from??>${vacancy.salary.from?c}</#if>
+    <#if vacancy.salary.to??> - ${vacancy.salary.to?c}</#if>
+${vacancy.salary.currency}
+<#else>
+Не указана
+</#if>
 </div>
 <div class="vacancy-detail">
-    <span class="vacancy-label">Опыт работы:</span> <#if vacancy.experience??>${vacancy.experience.name!"Не указан"}</#if><#if !vacancy.experience??>Не указан</#if>
+    <span class="vacancy-label">Опыт работы:</span>
+    <#if vacancy.experience??>
+    ${vacancy.experience.name!"Не указан"}
+    <#else>
+    Не указан
+</#if>
 </div>
 <div class="vacancy-detail">
-    <span class="vacancy-label">Обязанности:</span> <#if vacancy.snippet.responsibility??>${vacancy.snippet.responsibility?replace("<highlighttext>", "")?replace("</highlighttext>", "")!"Не указаны"}</#if><#if !vacancy.snippet.responsibility??>Не указаны</#if>
+    <span class="vacancy-label">Обязанности:</span>
+    <#if vacancy.snippet.responsibility??>
+    ${vacancy.snippet.responsibility?replace("<highlighttext>", "")?replace("</highlighttext>", "")!"Не указаны"}
+    <#else>
+    Не указаны
+</#if>
 </div>
 </div>
 </#list>
